@@ -119,6 +119,14 @@ contract NIL2 is ERC721Token, Ownable, Pausable, Destructible {
         return parameters_[_param];
     }
 
+    function getParametersAmount()
+        public
+        view
+        returns (uint amount)
+    {
+        return parametersKeys_.length;
+    }
+
     function addContractParameter(string param_, string value_)
         public
         onlyOwner
