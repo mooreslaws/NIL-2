@@ -1,0 +1,25 @@
+{
+  "name": "nil-2",
+  "version": "0.1.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexthelaw/NIL-2.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexthelaw/NIL-2/issues"
+  },
+  "homepage": "https://github.com/alexthelaw/NIL-2#readme",
+  "dependencies": {
+    "zeppelin-solidity": "1.8.0"
+  }
+}
