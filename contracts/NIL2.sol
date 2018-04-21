@@ -1,14 +1,13 @@
 pragma solidity ^0.4.19;
 
-import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "zeppelin-solidity/contracts/lifecycle/Destructible.sol";
 import "zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "zeppelin-solidity/contracts/AddressUtils.sol";
 import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
+import "./IPFSeable.sol";
 
-
-contract NIL2 is ERC721Token, Ownable, Pausable, Destructible {
+contract NIL2 is ERC721Token, IPFSeable, Pausable, Destructible {
 
     using SafeMath for uint256;
     using AddressUtils for address;
