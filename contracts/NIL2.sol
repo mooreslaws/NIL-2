@@ -16,6 +16,7 @@ contract NIL2 is ERC721Token, Ownable, Pausable, Destructible {
     string internal contractName_;
     string internal contractCID_;
     mapping (string => string) parameters_;
+    string[] parametersKeys_;
     address internal byuer_;
     address internal supplier_;
 
@@ -24,6 +25,24 @@ contract NIL2 is ERC721Token, Ownable, Pausable, Destructible {
     event GoodAdded(string name, string CID, uint price);
     event ParameterAdded(string param, string value);
     event ByuerMadeOrder(uint goodID, uint timestamp);
+    event SupplierUpdatedOrderState(uint orderID, uint orderState);
+    event ByuerConfirmedDelivery(uint orderID);
+    event ByuerTransferPayment(uint orderID);
+
+    modifier onlySupplier() {
+        require(msg.sender == supplier_);
+        _;
+    }
+
+    modifier onlyByuer() {
+        require(msg.sender == byuer_);
+        _;
+    }
+
+    modifier contractDataFilled() {
+        require(parametersKeys_.length == 10);
+        _;
+    }
 
     struct GoodInfo {
         string name;
@@ -37,6 +56,8 @@ contract NIL2 is ERC721Token, Ownable, Pausable, Destructible {
         goodState state;
         uint orderTimestamp;
     }
+
+    mapping (uint => bytes32) ordersMessages;
 
     GoodInfo[] internal supplierGoods;
     Order[] internal orders;
@@ -103,14 +124,15 @@ contract NIL2 is ERC721Token, Ownable, Pausable, Destructible {
         onlyOwner
     {
         parameters_[param_] = value_;
+        parametersKeys_.push(param_);
 
         ParameterAdded(param_, value_);
     }
 
     function addGood(string name_, string description_, string CID_, uint price_)
         public
+        onlySupplier
     {
-        require(msg.sender == supplier_);
         GoodInfo memory good = (GoodInfo(
         {
             name: name_,
@@ -139,9 +161,10 @@ contract NIL2 is ERC721Token, Ownable, Pausable, Destructible {
     function makeOrder(uint _goodID)
         public
         payable
+        onlyByuer
+        contractDataFilled
         returns (uint ID)
     {
-        require(msg.sender == byuer_);
         require(msg.value == supplierGoods[_goodID].price);
 
         Order memory order = (Order(
@@ -171,5 +194,59 @@ contract NIL2 is ERC721Token, Ownable, Pausable, Destructible {
             orders[_orderID].orderTimestamp,
             orders[_orderID].state
         );
+    }
+
+    function supplierUpdateManufacturingState(uint _orderID, uint _orderState)
+        public
+        contractDataFilled
+        onlySupplier
+    {
+        require(uint(goodState.Manufactured) >= _orderState && _orderState >= uint(goodState.Manufacturing));
+        orders[_orderID].state = goodState(_orderState);
+
+        SupplierUpdatedOrderState(_orderID, _orderState);
+    }
+
+    function supplierStartDelivery(uint _orderID, bytes32 _message)
+        public
+        contractDataFilled
+        onlySupplier
+    {
+        orders[_orderID].state = goodState.Delivery;
+        ordersMessages[_orderID] = _message;
+    }
+
+    function byuerConfirmedDelivery(uint _orderID, bytes32 _hash, uint8 _v, bytes32 _r, bytes32 _s)
+        public
+        contractDataFilled
+        onlyByuer
+    {
+        require(ordersMessages[_orderID] == _hash);
+        require(verifyByuerSignature(byuer_, _hash, _v, _r, _s));
+
+        orders[_orderID].state = goodState.Delivered;
+
+        super.removeTokenFrom(supplier_, _orderID);
+        super.addTokenTo(byuer_, _orderID);
+
+        transferPaymentToSupplier(_orderID);
+
+        ByuerConfirmedDelivery(_orderID);
+    }
+
+    function verifyByuerSignature(address p, bytes32 hash, uint8 v, bytes32 r, bytes32 s)
+        private
+        constant
+        returns(bool)
+    {
+        return ecrecover(hash, v, r, s) == p;
+    }
+
+    function transferPaymentToSupplier(uint _orderID)
+        private
+    {
+        supplier_.transfer(orders[_orderID].good.price);
+        orders[_orderID].state = goodState.Payed;
+        ByuerTransferPayment(_orderID);
     }
 }
