@@ -4,7 +4,7 @@ class App extends Component {
 	render() {
 		return (
 			<div>
-				<div>NIL-2</div>
+				<h2 className='text-center'>NIL-2</h2>
 				{this.props.children}
 			</div>
 		);

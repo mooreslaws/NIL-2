@@ -140,14 +140,13 @@ contract NIL2 is ERC721Token, IPFSeable, Pausable, Destructible {
         public
         onlySupplier
     {
-        GoodInfo memory good = (GoodInfo(
+        supplierGoods.push(GoodInfo(
         {
             name: name_,
             description: description_,
             CID: CID_,
             price: price_
         }));
-        supplierGoods.push(good);
 
         GoodAdded(name_, CID_, price_);
     }
@@ -158,6 +157,7 @@ contract NIL2 is ERC721Token, IPFSeable, Pausable, Destructible {
         returns(string, string, string, uint)
     {
         return (
+            // '1', '2', '3', _goodID
             supplierGoods[_goodID].name,
             supplierGoods[_goodID].description,
             supplierGoods[_goodID].CID,

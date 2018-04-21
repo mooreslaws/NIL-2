@@ -84,16 +84,18 @@ const getContract = () => {
     })
 }
 
+import generateContract from '../generateContract';
+
 class CreateContract extends Component {
 	constructor(props) {
       super(props)
 
       this.state = {
         params: [
-          { name: 'BOSS', value: '' },
-          { name: 'COUNTRYFROM', value: '' },
-          { name: 'COUNTRYTO', value: '' }
+          { name: 'FROM', value: '', key: '_Name1_' },
+          { name: 'TO', value: '', key: '_Name2_' }
         ],
+        byuer: null,
         laoding: false
       }
 
@@ -132,20 +134,54 @@ class CreateContract extends Component {
           }
         });
 
-        this.setState({
-          params: _params,
-          laoding: false
-        })
+        _contract.getByuer()
+          .then(byuer => {
+            // debugger
+            // _contract.getGoodInfo('0').then(data => {
+            //   debugger
+            // })
+            // debugger
+            // _contract.addGood('11', '222', '33', 1, { from: '0xf2492533F7d89DBfEd69757156c4B746839E59E8' })
+            // .then(x => {
+            //   debugger
+            // })
+            // debugger
+            //   _contract.getGoodInfo(0)
+            //     .then(data => {
+            //       debugger
+            //   //     debugger
+            //       // this.setState({
+            //       //   params: _params,
+            //       //   byuer: byuer,
+            //       //   laoding: false
+            //       // })                 
+            //     })
+
+              this.setState({
+                params: _params,
+                byuer: byuer,
+                laoding: false
+              }) 
+            })
+        
       })
     }
     updateParametr(name) {
+      const { params } = this.state;
+
       const value = this.refs[name].value;
       this.setState({
         laoding: true
       })
       _contract.addContractParameter(name, value, { from: '0xf2492533F7d89DBfEd69757156c4B746839E59E8' })
       .then(() => {
+        const _newParams = params.map(x => {
+         if (x.name === name) return ({ ...x, value: value })
+         return x; 
+        });
+        //params.filter(x => x.name === name)[0]
         this.setState({
+          params: _newParams,
           laoding: false
         })
       });
@@ -159,7 +195,6 @@ class CreateContract extends Component {
       getContract().then(({ contract, web3 }) => {
         _contract = contract;
         _web3 = web3;
-        debugger
         // contract.addContractParameter('BOSS', 'BIG', { from: '0xa3564D084fabf13e69eca6F2949D3328BF6468Ef' }).then(() => {
         //   debugger
         // })
@@ -193,7 +228,7 @@ class CreateContract extends Component {
     // })
 	}
 	render() {
-		const { params, laoding } = this.state;
+		const { params, laoding, byuer } = this.state;
 
     const rows = params.map(p => (
       <tr key={p.name}>
@@ -202,15 +237,23 @@ class CreateContract extends Component {
         <td><button onClick={() => this.updateParametr(p.name)}>update</button></td>
       </tr>
     ))
+  
+    const name1 = params.filter(x => x.key === '_Name1_')[0].value;
+    const name2 = params.filter(x => x.key === '_Name2_')[0].value;
 
-const input = '# This is a header\n\nAnd this is a paragraph'
-
+    const _parmas = {
+      '_Name1_': name1,
+      '_Name2_': name2,
+      '_getByuer_': byuer
+    }
 
 		return (
-			<div>
-        <div>
-           <ReactMarkdown source={input} />
+			<div className='container'>
+        <div className='row'>
+        <div className='col-8'>
+           <ReactMarkdown source={generateContract(_parmas)} />
         </div>
+        <div className='col-4'>
         {!laoding && <table>
           <thead>
             <tr>
@@ -226,6 +269,8 @@ const input = '# This is a header\n\nAnd this is a paragraph'
         {laoding && <div>loading...</div>}
         {/*<button onClick={this.get}>get</button>
         <button onClick={this.set}>set</button>*/}
+        </div>
+        </div>
 			</div>
 		);
 	}
