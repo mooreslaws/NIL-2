@@ -4,7 +4,7 @@ class App extends Component {
 	render() {
 		return (
 			<div>
-				<div>menu</div>
+				<div>NIL-2</div>
 				{this.props.children}
 			</div>
 		);
