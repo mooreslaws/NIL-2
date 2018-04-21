@@ -39,6 +39,8 @@ let getWeb3 = new Promise(function(resolve, reject) {
   })
 })
 
+const NIL2Abi = require('../../../../build/contracts/NIL2.json').abi;
+
 class CreateContract extends Component {
 	constructor(props) {
       super(props)
